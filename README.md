@@ -2,7 +2,7 @@
 
 Jadwal sholat, pengingat adzan, arah kiblat, dan pendamping ibadah yang dihitung lokal tanpa akun.
 
-[**Buka aplikasi**](https://atmajadesna.github.io/waktu-sholat/?v=7)
+[**Buka aplikasi**](https://atmajadesna.github.io/lima-waktu/?v=7)
 
 ![Dashboard Lima Waktu](docs/screenshot.jpg)
 
@@ -47,7 +47,7 @@ Deklinasi dan persamaan waktu dihitung dari Julian Day, dilanjutkan sudut mataha
 - Checklist bukan penilaian kualitas ibadah. Semua data berada di browser; menghapus data browser menghilangkan catatan.
 - Tidak ada server aplikasi atau analytics. Google Fonts dimuat eksternal saat daring; font sistem menjadi fallback offline.
 - Tautan sunnah.com dapat dibatasi aksesnya. Isi dzikir diperiksa silang terhadap dataset publik Sahih Muslim di https://github.com/AhmedBaset/hadith-json (riwayat istighfar tiga kali, doa keselamatan dan tasbih 33/33/33). Terjemahan Indonesia adalah terjemahan ringkas.
-- URL repo/demo lama dipertahankan agar tautan dan penyimpanan pengguna tidak berpindah; nama aplikasi sudah Lima Waktu.
+- Repository dan demo menggunakan nama `lima-waktu`. Tautan Pages lama perlu diganti; GitHub mengalihkan tautan repository lama. Data localStorage berada pada origin yang sama, tetapi instalasi PWA lama perlu dipasang ulang dari alamat baru.
 
 ## Kredit
 
