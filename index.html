@@ -3,16 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Waktu Sholat — jadwal, pengingat adzan, dan arah kiblat</title>
+<title>Lima Waktu — jadwal, pengingat adzan, dan arah kiblat</title>
 <meta name="description" content="Jadwal sholat lima waktu yang dihitung dari posisi matahari, pengingat adzan dengan suara, hitung mundur iqamah, arah kiblat, tasbih, dan catatan harian.">
 <meta name="theme-color" content="#101827">
-<meta property="og:title" content="Waktu Sholat — jadwal, pengingat adzan, arah kiblat">
-<meta property="og:description" content="Dihitung dari posisi matahari untuk kota Anda. Lengkap dengan pengingat adzan, lafaz Subuh, kompas kiblat, dan tasbih digital.">
+<meta property="og:title" content="Lima Waktu — jadwal, pengingat adzan, arah kiblat">
+<meta property="og:description" content="Dihitung dari posisi matahari untuk kota Anda. Lengkap dengan pengingat adzan, kompas kiblat, dan tasbih digital.">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=Amiri:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=6-navy">
+<link rel="stylesheet" href="styles.css?v=7">
+<link rel="stylesheet" href="comfort.css?v=7">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
 </head>
 <body>
 
@@ -27,16 +30,18 @@
             <path d="M12 3V1.6"/>
             <path d="M9.6 20v-4a2.4 2.4 0 0 1 4.8 0v4"/>
           </svg>
-          Waktu Sholat
+          Lima Waktu
         </div>
-        <h1>Jadwal sholat, <span>tenang</span> dan tepat.</h1>
+        <h1>Lima waktu, <span>satu ketenangan.</span></h1>
         <p class="masthead__ket">Dihitung dari posisi matahari pada koordinat Anda — tanpa server, tanpa pelacakan. Pilih kota, atau pakai lokasi perangkat.</p>
       </div>
 
       <div class="kendali-atas">
+        <div class="medan-kecil"><label for="tema">Tampilan</label><select id="tema"><option value="otomatis">Mengikuti waktu</option><option value="gelap">Gelap</option><option value="terang">Terang</option></select></div>
         <div class="medan-kecil">
           <label for="kota">Lokasi</label>
           <select id="kota"></select>
+          <label for="zona-gps">Zona lokasi GPS</label><select id="zona-gps"><option value="7">WIB · UTC+7</option><option value="8">WITA · UTC+8</option><option value="9">WIT · UTC+9</option></select>
         </div>
         <div class="medan-kecil">
           <label for="metode">Metode</label>
@@ -159,6 +164,8 @@
           <option value="20">20 menit</option>
         </select>
       </div>
+      <details><summary>Atur tiap waktu sholat</summary><div id="per-waktu"></div></details>
+      <p class="keterangan">Adzan otomatis membutuhkan tab terbuka dan izin audio dari browser. Tidak dijamin saat HP terkunci.</p>
       <button class="tombol" id="izin-notif">Izinkan notifikasi</button>
       <p style="font-size:0.6875rem;color:var(--ink-3)" id="iqamah-ket">Hitung mundur iqamah muncul setelah adzan diputar.</p>
     </section>
@@ -226,8 +233,10 @@
           <option value="33">33 — Subhanallah</option>
           <option value="99">99 — Asmaul Husna</option>
           <option value="100">100</option>
+          <option value="custom">Bebas</option>
         </select>
       </div>
+      <div class="medan-kecil"><label for="tasbih-custom">Target bebas (1–10000)</label><input id="tasbih-custom" type="number" min="1" max="10000" value="33"></div>
     </section>
 
     <!-- ================= CHECKLIST ================= -->
@@ -236,22 +245,15 @@
       <div class="checklist__daftar" id="ceklis-daftar"></div>
       <div class="checklist__progres"><i id="ceklis-progres" style="width:0%"></i></div>
       <div class="streak"><span>Rangkaian hari lengkap:</span> <b id="streak">0</b> <span>hari</span></div>
+      <p class="keterangan">Catatan pribadi di perangkat ini, bukan penilaian kualitas ibadah.</p>
       <p class="checklist__besok" id="ceklis-besok">—</p>
-    </section>
-
-    <!-- ================= CATATAN SUBUH ================= -->
-    <section class="kartu catatan" aria-labelledby="catatan-judul">
-      <div class="kartu__judul"><span id="catatan-judul">Catatan Subuh</span><b>lafaz tambahan</b></div>
-      <div class="catatan__arab">الصَّلَاةُ خَيْرٌ مِنَ النَّوْمِ</div>
-      <p><b>aṣ-ṣalātu khairun minan-naum</b> — “sholat itu lebih baik daripada tidur.”</p>
-      <p>Lafaz ini hanya diucapkan pada <b>adzan Subuh</b>, setelah “hayya ‘alal-falāḥ”. Sebagian riwayat menyebutnya diucapkan dua kali, dan sebagian ulama memakruhkan pengucapannya pada iqamah karena iqamah bukan tempat menyeru orang tidur.</p>
-      <p class="dalil">Dari Abu Hurairah, Nabi ﷺ bersabda kepada Bilal: “Jika engkau mengumandangkan adzan pada sholat Subuh, ucapkanlah: ash-shalatu khairun minan-naum.” — HR. Bukhari no. 615, Muslim no. 644.</p>
-      <p style="font-size:0.6875rem;color:var(--ink-3)">Karena itu, saat sholat berikutnya adalah Subuh, lafaz ini ditampilkan pada kartu utama dan pada baris Subuh di jadwal.</p>
     </section>
 
     <!-- ================= BULANAN ================= -->
     <section class="kartu bulanan" aria-labelledby="bulanan-judul">
       <div class="kartu__judul"><span id="bulanan-judul">Jadwal sebulan</span><b id="bulanan-nama">—</b></div>
+      <div class="baris alat-bulanan"><label for="bulan-pilih">Bulan <input type="month" id="bulan-pilih" aria-label="Pilih bulan"></label><button class="tombol" id="unduh-jadwal">Unduh CSV</button><button class="tombol" id="cetak-jadwal">Cetak / PDF</button></div>
+      <p class="keterangan" id="bulan-lokasi"></p>
       <div class="tabel-bungkus">
         <table class="bulanan__tabel">
           <thead>
@@ -262,26 +264,50 @@
       </div>
     </section>
 
+    <section class="kartu pendamping" aria-labelledby="dzikir-judul" id="dzikir">
+      <div class="kartu__judul"><span id="dzikir-judul">Dzikir setelah sholat</span><b>ringkas & bersumber</b></div>
+      <details><summary>Istighfar dan doa keselamatan</summary>
+        <p class="doa-arab" lang="ar" dir="rtl">أَسْتَغْفِرُ اللَّهَ</p><p>Astaghfirullāh · Aku memohon ampun kepada Allah. Dibaca tiga kali.</p>
+        <p class="doa-arab" lang="ar" dir="rtl">اللَّهُمَّ أَنْتَ السَّلَامُ وَمِنْكَ السَّلَامُ تَبَارَكْتَ يَا ذَا الْجَلَالِ وَالْإِكْرَامِ</p>
+        <p>Allāhumma antas-salām wa minkas-salām, tabārakta yā dzal-jalāli wal-ikrām.</p><p>Ya Allah, Engkaulah Yang Mahasejahtera, dan dari-Mu kesejahteraan. Mahaberkah Engkau, pemilik keagungan dan kemuliaan.</p>
+        <a href="https://sunnah.com/muslim:591" target="_blank" rel="noopener">Sumber: Sahih Muslim 591–592 (varian lafaz)</a>
+      </details>
+      <details><summary>Tasbih 33, tahmid 33, takbir 33</summary>
+        <p class="doa-arab" lang="ar" dir="rtl">سُبْحَانَ اللَّهِ · الْحَمْدُ لِلَّهِ · اللَّهُ أَكْبَرُ</p>
+        <p>Subḥānallāh (Mahasuci Allah), Alḥamdulillāh (segala puji bagi Allah), Allāhu akbar (Allah Mahabesar), masing-masing 33 kali.</p>
+        <p>Genapkan seratus dengan:</p><p class="doa-arab" lang="ar" dir="rtl">لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ</p>
+        <p>Lā ilāha illallāhu waḥdahu lā syarīka lah, lahul-mulku wa lahul-ḥamdu wa huwa ‘alā kulli syai’in qadīr.</p><p>Tidak ada tuhan selain Allah semata, tiada sekutu bagi-Nya. Milik-Nya kerajaan dan pujian, dan Dia Mahakuasa atas segala sesuatu.</p>
+        <a href="https://sunnah.com/muslim:597a" target="_blank" rel="noopener">Sumber: Sahih Muslim 597a</a>
+      </details>
+    </section>
+    <section class="kartu pendamping" aria-labelledby="ramadan-judul">
+      <div class="kartu__judul"><span id="ramadan-judul">Persiapan puasa</span><b>opsional</b></div>
+      <label class="checklist__baris"><input type="checkbox" id="ramadan-mode">Tampilkan mode Ramadan</label>
+      <div id="ramadan-isi" hidden><p id="ramadan-jadwal"></p><label class="medan-kecil" for="sahur">Pengingat sahur sebelum Subuh<select id="sahur"><option value="0">Nonaktif</option><option value="30">30 menit</option><option value="60">60 menit</option><option value="90">90 menit</option></select></label><p class="keterangan">Imsak bukan awal Subuh. Jadwal berbuka mengikuti Maghrib. Pengingat sahur hanya saat halaman terbuka.</p></div>
+      <button class="tombol" id="pasang-app">Pasang ke layar utama</button><p class="keterangan" id="offline-status">Jadwal dihitung lokal. Setelah kunjungan pertama, halaman bisa dibuka offline; audio disimpan setelah diputar saat daring.</p>
+    </section>
   </div>
 </main>
 
 <footer class="kaki">
   <div class="bungkus">
-    <p><b>Perhitungan.</b> Sudut matahari dihitung dengan algoritma astronomi standar (deklinasi dan persamaan waktu), lalu dikonversi ke waktu setempat memakai zona waktu per kota. Selisih 1–2 menit terhadap jadwal resmi dapat terjadi karena perbedaan metode dan pembulatan. Jadwal resmi Kemenag tetap menjadi acuan.</p>
+    <p><b>Perhitungan.</b> Sudut matahari dihitung dengan algoritma astronomi standar (deklinasi dan persamaan waktu), lalu dikonversi ke waktu setempat memakai zona waktu per kota. Perbedaan terhadap jadwal resmi dapat terjadi karena perbedaan metode dan pembulatan. Jadwal resmi Kemenag tetap menjadi acuan.</p>
+    <p>Hijriah merupakan estimasi kalender dan bisa berbeda dari penetapan resmi. Imsak adalah pengingat; awal puasa tetap masuknya Subuh.</p>
     <details class="kaki__rinci">
       <summary>Catatan teknis, batas, dan lisensi</summary>
       <p><b>Suara adzan.</b> Rekaman adzan Syaikh Kamil Najdi (muazin Masjid Nabawi, Madinah) dari koleksi <em>Azaan of World Mosques</em>, Internet Archive, berstatus Public Domain Mark 1.0. Berkas diselaraskan kenyaringannya dan dikonversi ke MP3 tanpa perubahan isi.</p>
-      <p><b>Lafaz Subuh.</b> Tambahan “ash-shalatu khairun minan-naum” hanya pada adzan Subuh, merujuk HR. Bukhari no. 615 dan Muslim no. 644.</p>
+
       <p><b>Batas.</b> Pengingat hanya berjalan selama halaman ini terbuka, karena tidak ada server dan tidak ada notifikasi latar belakang. Izin notifikasi peramban diperlukan agar pengingat tetap terlihat saat tab lain aktif.</p>
-      <p><b>Privasi.</b> Tidak ada data yang dikirim ke mana pun. Lokasi, pengaturan, dan catatan harian disimpan pada perangkat Anda.</p>
+      <p><b>Privasi.</b> Koordinat dan catatan tidak dikirim ke server aplikasi. Font eksternal dimuat saat daring. Lokasi, pengaturan, dan catatan harian disimpan pada perangkat Anda.</p>
     </details>
     <div class="kaki__baris">
-      <span>Waktu Sholat · dibuat dengan JavaScript tanpa kerangka kerja</span>
+      <span>Lima Waktu · dibuat dengan JavaScript tanpa kerangka kerja</span>
       <span><a href="https://atmajadesna.github.io">Portofolio</a> · <a href="https://github.com/atmajadesna/waktu-sholat">Kode sumber</a></span>
     </div>
   </div>
 </footer>
 
-<script src="app.js?v=5"></script>
+<script src="app.js?v=7"></script>
+<script src="extras.js?v=7"></script>
 </body>
 </html>

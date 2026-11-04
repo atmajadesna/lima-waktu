@@ -1,4 +1,4 @@
-/* Waktu Sholat — jadwal, pengingat adzan, arah kiblat, tasbih.
+/* Lima Waktu — jadwal, pengingat adzan, arah kiblat, tasbih.
  * Seluruh perhitungan berjalan di peramban. Tanpa dependensi.
  */
 (() => {
@@ -184,6 +184,13 @@
   };
 
   let state = muat();
+  if (state.perangkat && Number.isFinite(state.perangkat.lat) && Number.isFinite(state.perangkat.lng)) KOTA.push(state.perangkat);
+
+  // Calendar date at the selected location, independent of device timezone.
+  function waktuLokal() {
+    const d = new Date(Date.now() + kotaAktif().tz * 3600000);
+    return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds());
+  }
 
   function muat() {
     try {
@@ -229,7 +236,7 @@
     el.kota.value = state.kota;
   }
 
-  function waktuHariIni(tgl = new Date()) {
+  function waktuHariIni(tgl = waktuLokal()) {
     const hasil = hitungWaktu(tgl, kotaAktif(), state.metode);
     if (state.koreksi) {
       for (const k in hasil) if (hasil[k] !== null) hasil[k] = fixHour(hasil[k] + state.koreksi / 60);
@@ -238,31 +245,28 @@
   }
 
   function tanggalDariJam(tgl, jam) {
-    const d = new Date(tgl.getFullYear(), tgl.getMonth(), tgl.getDate(), 0, 0, 0, 0);
-    d.setSeconds(keDetik(jam));
-    return d;
+    if (!Number.isFinite(jam)) return new Date(NaN);
+    return new Date(Date.UTC(tgl.getFullYear(), tgl.getMonth(), tgl.getDate()) + Math.round(jam * 60) * 60000 - kotaAktif().tz * 3600000);
   }
 
   function berikutnya(tgl, waktu) {
-    const kini = new Date();
+    const kini = waktuLokal();
     for (const k of SHOLAT_WAJIB) {
       const d = tanggalDariJam(tgl, waktu[k]);
-      if (d > kini) return { kunci: k, waktu: d };
+      if (d.getTime() > Date.now()) return { kunci: k, waktu: d };
     }
     const besok = new Date(tgl.getFullYear(), tgl.getMonth(), tgl.getDate() + 1);
-    const w = hitungWaktu(besok, kotaAktif(), state.metode);
+    const w = waktuHariIni(besok);
     return { kunci: 'subuh', waktu: tanggalDariJam(besok, w.subuh), besok: true };
   }
 
   function renderJadwal(waktu) {
-    const kini = new Date();
+    const kini = waktuLokal();
     el.daftar.innerHTML = SHOLAT.map((s) => {
       const jam = waktu[s.kunci];
       const d = tanggalDariJam(kini, jam);
-      const lewat = d <= kini;
-      const tanda = s.kunci === 'subuh'
-        ? '<span class="jadwal__tanda" title="Adzan Subuh menambahkan lafaz: ash-shalatu khairun minan-naum">+ خَيْرٌ مِنَ النَّوْمِ</span>'
-        : '';
+      const lewat = d.getTime() <= Date.now();
+      const tanda = '';
       return `<li class="jadwal__baris" data-kunci="${s.kunci}" data-status="${lewat ? 'lewat' : 'menunggu'}">
         <span class="jadwal__nama"><span class="arab">${s.arab}</span><span class="latin">${s.nama}</span>${tanda}</span>
         <span class="jadwal__jam">${formatJam(jam, state.format)}</span>
@@ -272,14 +276,14 @@
   }
 
   function renderHero(waktu) {
-    const kini = new Date();
+    const kini = waktuLokal();
     const n = berikutnya(kini, waktu);
     const info = SHOLAT.find((s) => s.kunci === n.kunci);
     el.heroNama.textContent = info.nama;
     el.heroArab.textContent = info.arab;
-    el.heroJam.textContent = formatJam(waktu[n.kunci], state.format);
+    el.heroJam.textContent = formatJam((n.besok ? waktuHariIni(new Date(kini.getFullYear(), kini.getMonth(), kini.getDate()+1)) : waktu)[n.kunci], state.format);
     el.heroLabel.textContent = n.besok ? 'Subuh berikutnya · besok' : 'Sholat berikutnya';
-    el.lafaz.hidden = n.kunci !== 'subuh';
+    el.lafaz.hidden = true;
     el.heroTanggal.textContent = tanggalPanjang(kini);
     el.heroHijri.textContent = hijriah(kini);
     const k = kotaAktif();
@@ -306,26 +310,29 @@
   }
 
   function renderBulanan() {
-    const kini = new Date();
-    const tahun = kini.getFullYear(), bulan = kini.getMonth();
+    const kini = waktuLokal();
+    const pilihan = $('#bulan-pilih').value || tanggalISO(kini).slice(0,7);
+    $('#bulan-pilih').value = pilihan;
+    const [tahun, nomorBulan] = pilihan.split('-').map(Number), bulan = nomorBulan - 1;
     const jumlah = new Date(tahun, bulan + 1, 0).getDate();
     const baris = [];
     for (let t = 1; t <= jumlah; t++) {
       const tgl = new Date(tahun, bulan, t);
       const w = waktuHariIni(tgl);
-      const ini = t === kini.getDate();
+      const ini = t === kini.getDate() && bulan === kini.getMonth() && tahun === kini.getFullYear();
       baris.push(`<tr data-hari-ini="${ini ? 'ya' : 'tidak'}"><td>${t}</td>${
         SHOLAT.map((s) => `<td>${formatJam(w[s.kunci], state.format)}</td>`).join('')
       }</tr>`);
     }
     el.bulananIsi.innerHTML = baris.join('');
-    el.bulananNama.textContent = new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(kini);
+    el.bulananNama.textContent = new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(new Date(tahun,bulan,1));
+    $('#bulan-lokasi').textContent = `${kotaAktif().nama} · UTC+${kotaAktif().tz} · ${state.metode} · koreksi ${state.koreksi} menit`;
   }
 
   /* ---------- checklist ---------- */
 
   function renderCeklis() {
-    const hari = tanggalISO(new Date());
+    const hari = tanggalISO(waktuLokal());
     const sudah = state.ceklis[hari] || [];
     el.ceklis.innerHTML = SHOLAT_WAJIB.map((k) => {
       const info = SHOLAT.find((s) => s.kunci === k);
@@ -335,19 +342,19 @@
         <span>${info.nama}</span>
       </label>`;
     }).join('');
-    el.ceklisTanggal.textContent = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short' }).format(new Date());
+    el.ceklisTanggal.textContent = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short' }).format(waktuLokal());
     $('#ceklis-progres').style.width = `${(sudah.length / SHOLAT_WAJIB.length) * 100}%`;
-    const besok = new Date();
+    const besok = waktuLokal();
     besok.setDate(besok.getDate() + 1);
     const wBesok = hitungWaktu(besok, kotaAktif(), state.metode);
     const jamBesok = fixHour(wBesok.subuh + state.koreksi / 60);
-    $('#ceklis-besok').textContent = `Besok Subuh ${formatJam(jamBesok, state.format)} — lafaz “ash-shalatu khairun minan-naum” dikumandangkan pada adzannya.`;
+    $('#ceklis-besok').textContent = `Besok Subuh ${formatJam(jamBesok, state.format)}.`;
     renderStreak();
   }
 
   function renderStreak() {
     let jumlah = 0;
-    const d = new Date();
+    const d = waktuLokal();
     for (let i = 0; i < 400; i++) {
       const kunci = tanggalISO(d);
       const isi = state.ceklis[kunci] || [];
@@ -407,7 +414,7 @@
     el.tasbihAngka.textContent = t.n;
     el.tasbihPutaran.textContent = `putaran ${t.putaran}`;
     el.tasbihTarget.textContent = `target ${t.target}`;
-    el.tasbihPilih.value = String(t.target);
+    el.tasbihPilih.value = [33,99,100].includes(t.target) ? String(t.target) : 'custom';
   }
 
   /* ===================================================================
@@ -550,15 +557,15 @@
   let ingatTerakhir = sessionStorage.getItem('sholat.ingat') || null;
 
   function periksaJadwal(waktu) {
-    const kini = new Date();
+    const kini = waktuLokal();
     const kunciHari = tanggalISO(kini);
 
     for (const k of SHOLAT_WAJIB) {
       const d = tanggalDariJam(kini, waktu[k]);
-      const selisih = kini - d;
+      const selisih = Date.now() - d;
 
       // adzan otomatis
-      if (state.auto && selisih >= 0 && selisih < 45000 && adzanTerakhir !== kunciHari + k) {
+      if (state.auto && state.perWaktu?.[k] !== false && selisih >= 0 && selisih < 45000 && adzanTerakhir !== kunciHari + k) {
         adzanTerakhir = kunciHari + k;
         const info = SHOLAT.find((s) => s.kunci === k);
         putarAdzan('otomatis');
@@ -569,8 +576,8 @@
       }
 
       // pengingat sebelum
-      if (state.pengingat > 0) {
-        const sisaMenit = (d - kini) / 60000;
+      if (state.pengingat > 0 && state.perWaktu?.[k] !== false) {
+        const sisaMenit = (d.getTime() - Date.now()) / 60000;
         const tanda = kunciHari + k;
         if (sisaMenit > 0 && sisaMenit <= state.pengingat && ingatTerakhir !== tanda) {
           ingatTerakhir = tanda;
@@ -578,7 +585,7 @@
           const info = SHOLAT.find((s) => s.kunci === k);
           const pesan = `${info.nama} ${formatJam(waktu[k], state.format)} — ${Math.ceil(sisaMenit)} menit lagi.`;
           if ('Notification' in window && Notification.permission === 'granted') {
-            try { new Notification('Waktu Sholat', { body: pesan }); } catch (e) { /* diabaikan */ }
+            try { new Notification('Lima Waktu', { body: pesan }); } catch (e) { /* diabaikan */ }
           }
           tampilPita(`Menuju ${info.nama}`, pesan);
         }
@@ -602,7 +609,9 @@
         const { latitude, longitude } = pos.coords;
         const id = 'perangkat';
         const ada = KOTA.findIndex((k) => k.id === id);
-        const baru = { id, nama: 'Lokasi perangkat', lat: latitude, lng: longitude, tz: -new Date().getTimezoneOffset() / 60 };
+        const tz = +$('#zona-gps').value;
+        const baru = { id, nama: 'Lokasi perangkat', lat: latitude, lng: longitude, tz };
+        state.perangkat = baru;
         if (ada >= 0) KOTA[ada] = baru; else KOTA.push(baru);
         if (!KOTA.some((k) => k.id === id)) KOTA.push(baru);
         state.kota = id;
@@ -628,7 +637,7 @@
   el.ceklis.addEventListener('change', (e) => {
     const kotak = e.target.closest('input[data-ceklis]');
     if (!kotak) return;
-    const hari = tanggalISO(new Date());
+    const hari = tanggalISO(waktuLokal());
     const daftar = new Set(state.ceklis[hari] || []);
     if (kotak.checked) daftar.add(kotak.dataset.ceklis); else daftar.delete(kotak.dataset.ceklis);
     state.ceklis[hari] = Array.from(daftar);
@@ -637,7 +646,7 @@
   });
 
   el.tasbihPilih.addEventListener('change', () => {
-    state.tasbih.target = +el.tasbihPilih.value;
+    state.tasbih.target = el.tasbihPilih.value === 'custom' ? Math.max(1,Math.min(10000,+$('#tasbih-custom').value || 33)) : +el.tasbihPilih.value;
     state.tasbih.n = 0;
     simpan();
     renderTasbih();
@@ -694,26 +703,28 @@
    * =================================================================== */
 
   let waktuSekarang = null;
+  let hariRender = '';
 
   function renderSemua() {
-    waktuSekarang = waktuHariIni(new Date());
+    hariRender = tanggalISO(waktuLokal());
+    waktuSekarang = waktuHariIni(waktuLokal());
+    renderCeklis();
     renderJadwal(waktuSekarang);
     const n = renderHero(waktuSekarang);
     renderHitungMundur(n.waktu.getTime());
     renderBulanan();
     renderKiblat();
+    document.dispatchEvent(new Event('lima:update'));
   }
 
   function tik() {
     if (!waktuSekarang) return;
-    const n = berikutnya(new Date(), waktuSekarang);
+    const n = renderHero(waktuSekarang);
     renderHitungMundur(n.waktu.getTime());
     periksaJadwal(waktuSekarang);
 
-    // ganti hari
-    if (n.besok && n.waktu - Date.now() < 60000) return;
-    const jamSekarang = new Date().getHours();
-    if (jamSekarang === 0 && new Date().getMinutes() === 0) renderSemua();
+    const hari = tanggalISO(waktuLokal());
+    if (hari !== hariRender) renderSemua();
   }
 
   function mulai() {
@@ -734,5 +745,7 @@
     setInterval(renderSemua, 300000);
   }
 
+  window.LimaWaktu = { state, simpan, renderSemua, renderBulanan, renderTasbih, waktuLokal, waktuHariIni, formatJam, tanggalDariJam, SHOLAT, SHOLAT_WAJIB, kotaAktif, tampilPita };
+  $('#bulan-pilih').addEventListener('change', renderBulanan);
   mulai();
 })();
