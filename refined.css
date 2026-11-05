@@ -2,6 +2,23 @@
 :root{--radius:20px;--radius-sm:10px}
 :root[data-tema=gelap]{--paper:#111e20;--paper-2:#19292b;--paper-3:#233638;--paper-4:#2d4142;--ink:#f0f0e5;--ink-2:#c6d4cf;--ink-3:#a3bbb4;--line:#3b5350;--line-soft:#2b4240;--brass:#dfc58f;--brass-dim:#b7a06e;--brass-wash:#dfc58f14;--sage:#b2d4c7;--shadow:0 12px 35px #00000012}
 :root[data-tema=terang]{--paper:#f4f2eb;--paper-2:#fffef9;--paper-3:#ecefe5;--paper-4:#e2e8db;--ink:#203d36;--ink-2:#455f54;--ink-3:#5d7266;--line:#ccd6c9;--line-soft:#e0e5d9;--brass:#796126;--brass-wash:#eae3cc;--sage:#416f5b;--shadow:0 8px 24px #23392d06}
+/* Colorful surfaces: saturated focal card, soft supporting colors. */
+:root[data-tema=terang]{--paper:#f5f2fa;--ink:#26364b;--ink-2:#46576d;--ink-3:#5c687d;--brass:#865518;--brass-wash:#fff0ce;--line:#cdd4e1;--line-soft:#dde1eb}
+:root[data-tema=terang] .hero{--paper-2:#126c69;--ink:#ffffff;--ink-2:#e0f5ef;--ink-3:#d2eee6;--brass:#ffe39b;--brass-wash:#ffffff17;--line-soft:#ffffff38;color:var(--ink)}
+:root[data-tema=terang] .jadwal{background:#fff9e9}
+:root[data-tema=terang] .adzan{background:#fff0e9}
+:root[data-tema=terang] .kiblat{background:#eaf6f3}
+:root[data-tema=terang] .tasbih{background:#f0edff;--brass:#6947a0;--brass-wash:#e1d8f5}
+:root[data-tema=terang] .checklist{background:#eaf3fc}
+:root[data-tema=terang] .pendamping{background:#fff5e2}
+:root[data-tema=gelap]{--paper:#151c2c;--paper-2:#202c40;--paper-3:#2a3950;--ink:#f3f3fa;--ink-2:#d1dbea;--ink-3:#b4c4da;--brass:#f4ce8c;--line:#485974;--line-soft:#35465d}
+:root[data-tema=gelap] .hero{background:#164f52;--paper-2:#164f52;--ink:#fffdf3;--ink-2:#d7f1e9;--ink-3:#c8e7df;--brass:#ffe09a;--line-soft:#ffffff30}
+:root[data-tema=gelap] .jadwal{background:#343127}
+:root[data-tema=gelap] .adzan{background:#392c32}
+:root[data-tema=gelap] .kiblat{background:#203b3d}
+:root[data-tema=gelap] .tasbih{background:#302e4c;--brass:#d4b7ff}
+:root[data-tema=gelap] .checklist{background:#243750}
+:root[data-tema=gelap] .pendamping{background:#363226}
 body{background:var(--paper)}
 .masthead{padding:36px 0 26px;border-bottom:1px solid var(--line)}
 .masthead h1{font-size:clamp(2.5rem,4vw,3.6rem);letter-spacing:-.04em}
